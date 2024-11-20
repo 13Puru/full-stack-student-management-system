@@ -1,0 +1,60 @@
+nav.navbar.navbar-expand-lg.bg {
+    background-color: #86c2ff; /* Custom background color */
+    border-bottom: 2px solid #6c757d; /* Optional: Border at the bottom */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Add shadow */
+}
+
+nav.navbar.bg .navbar-brand {
+    color: #343a40; /* Custom color for brand text */
+    font-weight: bold;
+}
+
+nav.navbar.bg .nav-link {
+    color: #495057; /* Custom color for links */
+    transition: color 0.3s ease-in-out; /* Smooth color transition */
+}
+ion-icon{
+    vertical-align: middle;
+    margin-right: 10px;
+}
+body {
+    background: #f8f9fa;
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+.login-section {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.form-container {
+    background: #c8c8c8;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    padding: 30px;
+    width: 100%;
+    max-width: 400px;
+}
+.form-title {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+.form-container .btn-primary {
+    width: 100%;
+}
+.welcome-message {
+    background-color: #007bff;
+    color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.tab-content {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
