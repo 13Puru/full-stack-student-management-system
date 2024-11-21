@@ -8,15 +8,15 @@ session_start();
 $error_msg = '';
 
 // Check if the student form is submitted
-if (isset($_POST['email']) && isset($_POST['password'])) {
+if (isset($_POST['username']) && isset($_POST['password'])) {
     // Retrieve the email and password from the form
-    $email = $_POST['email'];
+    $username = $_POST['username'];
     $password = $_POST['password'];
 
     // Prepare SQL query to find the student by email
-    $query = "SELECT * FROM students WHERE email = ?";
+    $query = "SELECT * FROM students WHERE username = ?";
     $stmt = $conn->prepare($query);
-    $stmt->bind_param("s", $email);
+    $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -29,7 +29,7 @@ if (isset($_POST['email']) && isset($_POST['password'])) {
             // Set session variables for student login
             $_SESSION['student_id'] = $student['student_id'];
             $_SESSION['student_name'] = $student['name'];
-            $_SESSION['student_email'] = $student['email'];
+            $_SESSION['student_email'] = $student['username'];
             
             // Redirect to the student dashboard or home page
             header('Location: userpro.php');
@@ -38,7 +38,7 @@ if (isset($_POST['email']) && isset($_POST['password'])) {
             $error_msg = 'Invalid password.';
         }
     } else {
-        $error_msg = 'No student found with this email.';
+        $error_msg = 'No student found with this username.';
     }
 }
 
@@ -119,8 +119,8 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
                     <h2 class="form-title">Student Login</h2>
                     <form action="login.php" method="POST">
                         <div class="mb-3">
-                            <label for="studentEmail" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="studentEmail" name="email" placeholder="Enter your email" required>
+                            <label for="studentUsername" class="form-label">username</label>
+                            <input type="email" class="form-control" id="studentUsername" name="username" placeholder="Enter your username" required>
                         </div>
                         <div class="mb-3">
                             <label for="studentPassword" class="form-label">Password</label>
