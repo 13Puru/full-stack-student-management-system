@@ -1,13 +1,81 @@
+<?php
+include 'dbconfig.php';
+
+// Check if the form is submitted
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Collect form data
+    $name = $_POST['name'];
+    $father_name = $_POST['father_name'];
+    $mobile_number = $_POST['mobile_number'];
+    $admission_class = $_POST['admission_class'];
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+
+    // Handle image upload
+    $image = $_FILES['image']['tmp_name'];
+    $imageContent = addslashes(file_get_contents($image));  // Get image data in binary format
+
+    // Hash the password
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+    // Check if the username already exists
+    $query = "SELECT * FROM registration_requests WHERE username = ? UNION SELECT * FROM students WHERE username = ?";
+    
+    // Prepare statement for the check query
+    if ($stmt = $conn->prepare($query)) {
+        // Bind parameters and execute
+        $stmt->bind_param("ss", $username, $username);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            // Username already exists
+            echo "<script>alert('Error: Username already exists!');</script>";
+        } else {
+            // Insert registration request if username doesn't exist
+            $insertQuery = "INSERT INTO registration_requests (name, father_name, mobile_number, admission_class, username, password, image) 
+                            VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+            // Prepare statement for insert query
+            if ($insertStmt = $conn->prepare($insertQuery)) {
+                // Bind parameters for the insert query
+                $insertStmt->bind_param("sssssss", $name, $father_name, $mobile_number, $admission_class, $username, $hashedPassword, $imageContent);
+
+                if ($insertStmt->execute()) {
+                    echo "<script>alert('Registration request submitted successfully! Your registration is pending approval.');</script>";
+                } else {
+                    echo "<script>alert('Error: " . $insertStmt->error . "');</script>";
+                }
+
+                // Close the insert statement after execution
+                $insertStmt->close();
+            } else {
+                echo "<script>alert('Error: " . $conn->error . "');</script>";
+            }
+        }
+
+        // Close the select statement after execution
+        $stmt->close();
+    } else {
+        echo "<script>alert('Error: " . $conn->error . "');</script>";
+    }
+
+    // Close the database connection
+    $conn->close();
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/full-stack-student-management-system/css/style.css">
     <style>
-         .form-container {
+        .form-container {
             background: #fff;
             border-radius: 10px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
@@ -39,10 +107,10 @@
           <div class="collapse navbar-collapse" id="navbarText">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
               <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="index.html">Home</a>
+                <a class="nav-link active" aria-current="page" href="index.php">Home</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="login.html">Login</a>
+                <a class="nav-link" href="login.php">Login</a>
               </li>
             </ul>
             <span class="navbar-text">
@@ -52,11 +120,11 @@
         </div>
       </nav>
 
-      <!-- Registration Form -->
+    <!-- Registration Form -->
     <div class="container">
         <div class="form-container">
             <h2 class="form-title">Student Registration</h2>
-            <form action="/register" method="POST" enctype="multipart/form-data">
+            <form action="register.php" method="POST" enctype="multipart/form-data">
                 <!-- Name -->
                 <div class="mb-3">
                     <label for="name" class="form-label">Name</label>
@@ -75,7 +143,7 @@
                 <!-- Father's Name -->
                 <div class="mb-3">
                     <label for="fathersName" class="form-label">Father's Name</label>
-                    <input type="text" class="form-control" id="fathersName" name="fathers_name" placeholder="Enter father's name" required>
+                    <input type="text" class="form-control" id="fathersName" name="father_name" placeholder="Enter father's name" required>
                 </div>
 
                 <!-- Mobile Number -->
@@ -84,13 +152,8 @@
                     <input type="tel" class="form-control" id="mobileNumber" name="mobile_number" placeholder="Enter mobile number" pattern="[0-9]{10}" required>
                 </div>
 
-                <!-- Email -->
-                <div class="mb-3">
-                    <label for="email" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="email" name="email" placeholder="Enter email address" required>
-                </div>
 
-                <!-- admission for -->
+                <!-- Admission For -->
                 <div class="mb-3">
                     <label for="admissionClass" class="form-label">Seeking Admission For</label>
                     <select class="form-select" id="admissionClass" name="admission_class" required>
@@ -128,29 +191,27 @@
         </div>
     </div>
 
-
     <!-- Footer -->
     <footer class="bg-dark text-center py-3 mt-5">
         <p class="mb-0 text-light">&copy; 2024 FSMS. All Rights Reserved. Designed and developed by Purab Das</p>
     </footer>
- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
- <script src="/full-stack-student-management-system/js/script.js"></script>
- <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>  
-<script>
-    // Function to preview image
-    function previewImage() {
-        const file = document.getElementById('image').files[0];
-        const preview = document.getElementById('imagePreview');
 
-        if (file) {
-            const reader = new FileReader();
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    
+    <script>
+        function previewImage() {
+            var file = document.getElementById("image").files[0];
+            var reader = new FileReader();
+            
             reader.onload = function (e) {
-                preview.src = e.target.result;
+                document.getElementById("imagePreview").src = e.target.result;
             };
-            reader.readAsDataURL(file);
+            
+            if (file) {
+                reader.readAsDataURL(file);
+            }
         }
-    }
-</script>
+    </script>
 </body>
 </html>

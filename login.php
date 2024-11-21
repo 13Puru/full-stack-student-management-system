@@ -1,43 +1,123 @@
+<?php
+include 'dbconfig.php'; // Include your database configuration file
+
+// Start the session to store login information
+session_start();
+
+// Initialize variables for error messages
+$error_msg = '';
+
+// Check if the student form is submitted
+if (isset($_POST['email']) && isset($_POST['password'])) {
+    // Retrieve the email and password from the form
+    $email = $_POST['email'];
+    $password = $_POST['password'];
+
+    // Prepare SQL query to find the student by email
+    $query = "SELECT * FROM students WHERE email = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Check if the student exists
+    if ($result->num_rows > 0) {
+        $student = $result->fetch_assoc();
+        
+        // Verify the password
+        if (password_verify($password, $student['password'])) {
+            // Set session variables for student login
+            $_SESSION['student_id'] = $student['student_id'];
+            $_SESSION['student_name'] = $student['name'];
+            $_SESSION['student_email'] = $student['email'];
+            
+            // Redirect to the student dashboard or home page
+            header('Location: userpro.php');
+            exit();
+        } else {
+            $error_msg = 'Invalid password.';
+        }
+    } else {
+        $error_msg = 'No student found with this email.';
+    }
+}
+
+// Check if the admin form is submitted
+if (isset($_POST['username']) && isset($_POST['password'])) {
+    // Retrieve the username and password from the form
+    $username = $_POST['username'];
+    $password = $_POST['password'];
+
+    // Prepare SQL query to find the admin by username
+    $query = "SELECT * FROM admins WHERE username = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Check if the admin exists
+    if ($result->num_rows > 0) {
+        $admin = $result->fetch_assoc();
+        
+        // Verify the password
+        if (password_verify($password, $admin['password'])) {
+            // Set session variables for admin login
+            $_SESSION['admin_id'] = $admin['admin_id'];
+            $_SESSION['admin_username'] = $admin['username'];
+            
+            // Redirect to the admin dashboard
+            header('Location: admin.php');
+            exit();
+        } else {
+            $error_msg = 'Invalid password for admin.';
+        }
+    } else {
+        $error_msg = 'No admin found with this username.';
+    }
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>login</title>
+    <title>Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="/full-stack-student-management-system/css/style.css">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg bg">
         <div class="container-fluid">
-          <a class="navbar-brand" href="#"><ion-icon name="book-outline"></ion-icon>FSMS</a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarText">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="index.html">Home</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="register.html">Register</a>
-              </li>
-            </ul>
-            <span class="navbar-text">
-              Student-Management-System
-            </span>
-          </div>
+            <a class="navbar-brand" href="#"><ion-icon name="book-outline"></ion-icon>FSMS</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarText">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="index.php">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="register.php">Register</a>
+                    </li>
+                </ul>
+                <span class="navbar-text">
+                    Student-Management-System
+                </span>
+            </div>
         </div>
-      </nav>
+    </nav>
 
-          <!-- Main Section -->
+    <!-- Main Section -->
     <div class="container-fluid">
         <div class="row">
             <!-- Student Login Section -->
             <div class="col-md-6 login-section bg-primary text-white">
                 <div class="form-container">
                     <h2 class="form-title">Student Login</h2>
-                    <form action="/student-login" method="POST">
+                    <form action="login.php" method="POST">
                         <div class="mb-3">
                             <label for="studentEmail" class="form-label">Email</label>
                             <input type="email" class="form-control" id="studentEmail" name="email" placeholder="Enter your email" required>
@@ -48,6 +128,7 @@
                         </div>
                         <button type="submit" class="btn btn-light text-primary">Login</button>
                     </form>
+                    <?php if (!empty($error_msg)) { echo "<p class='text-danger'>$error_msg</p>"; } ?>
                 </div>
             </div>
 
@@ -55,7 +136,7 @@
             <div class="col-md-6 login-section bg-secondary text-white">
                 <div class="form-container">
                     <h2 class="form-title">Admin Login</h2>
-                    <form action="/admin-login" method="POST">
+                    <form action="login.php" method="POST">
                         <div class="mb-3">
                             <label for="adminUsername" class="form-label">Username</label>
                             <input type="text" class="form-control" id="adminUsername" name="username" placeholder="Enter your username" required>
@@ -66,18 +147,20 @@
                         </div>
                         <button type="submit" class="btn btn-light text-secondary">Login</button>
                     </form>
+                    <?php if (!empty($error_msg)) { echo "<p class='text-danger'>$error_msg</p>"; } ?>
                 </div>
             </div>
         </div>
     </div>
 
-      <!-- Footer -->
+    <!-- Footer -->
     <footer class="bg-dark text-center py-3 mt-5">
         <p class="mb-0 text-light">&copy; 2024 FSMS. All Rights Reserved. Designed and developed by Purab Das</p>
     </footer>
- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
- <script src="/full-stack-student-management-system/js/script.js"></script>
- <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>   
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="/full-stack-student-management-system/js/script.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </body>
 </html>

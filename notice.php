@@ -1,3 +1,43 @@
+<?php
+include 'dbconfig.php'; // Include database connection file
+
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $title = $_POST['notice_title'];
+    $description = $_POST['notice_description'];
+    $visibility = $_POST['visibility'];
+    $file = $_FILES['notice_file'];
+    
+    // Process uploaded file
+    $fileName = '';
+    if ($file['error'] === UPLOAD_ERR_OK) {
+        $fileTmpPath = $file['tmp_name'];
+        $fileName = $file['name'];
+        $fileSize = $file['size'];
+        $fileType = $file['type'];
+        
+        // Move file to a specific directory
+        $uploadDir = 'uploads/';
+        $filePath = $uploadDir . $fileName;
+        move_uploaded_file($fileTmpPath, $filePath);
+    }
+
+    // Insert notice into the database
+    $sql = "INSERT INTO notices (title, description, file, visibility) VALUES (?, ?, ?, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ssss", $title, $description, $fileName, $visibility);
+    $stmt->execute();
+
+    // Redirect to the same page to display the updated notice list
+    header("Location: notice.php");
+    exit();
+}
+
+// Fetch previous notices from the database
+$sql = "SELECT * FROM notices ORDER BY created_at DESC";
+$result = $conn->query($sql);
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,10 +81,10 @@
           <div class="collapse navbar-collapse" id="navbarText">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
               <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="admin.html">Home</a>
+                <a class="nav-link active" aria-current="page" href="admin.php">Home</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="stdMgmt.html">Student Management</a>
+                <a class="nav-link" href="stdMgmt.php">Student Management</a>
               </li>
             </ul>
             <span class="navbar-text">
@@ -54,13 +94,13 @@
         </div>
       </nav>
 
-      <div class="container">
+    <div class="container">
         <!-- Upload Notice Section -->
         <div class="form-container">
             <h2 class="text-center">Upload Notice</h2>
             <p class="text-center text-muted">Use this section to upload new notices for students and staff.</p>
             
-            <form action="/upload-notice" method="POST" enctype="multipart/form-data">
+            <form action="notice.php" method="POST" enctype="multipart/form-data">
                 <!-- Notice Title -->
                 <div class="mb-3">
                     <label for="noticeTitle" class="form-label">Notice Title</label>
@@ -109,17 +149,16 @@
         <div class="notice-list">
             <h4>Previous Notices</h4>
             <ul class="list-group">
-                <li class="list-group-item">
-                    <h5>Notice Title 1</h5>
-                    <p>Description of the notice. <a href="#" class="text-primary">View File</a></p>
-                    <p class="text-muted">Visibility: Students Only</p>
-                </li>
-                <li class="list-group-item">
-                    <h5>Notice Title 2</h5>
-                    <p>Description of the notice. <a href="#" class="text-primary">View File</a></p>
-                    <p class="text-muted">Visibility: Staff Only</p>
-                </li>
-                <!-- More notices can be listed here -->
+                <?php while ($notice = $result->fetch_assoc()) { ?>
+                    <li class="list-group-item">
+                        <h5><?php echo htmlspecialchars($notice['title']); ?></h5>
+                        <p><?php echo nl2br(htmlspecialchars($notice['description'])); ?></p>
+                        <?php if ($notice['file']) { ?>
+                            <a href="uploads/<?php echo htmlspecialchars($notice['file']); ?>" class="text-primary" target="_blank">View File</a>
+                        <?php } ?>
+                        <p class="text-muted">Visibility: <?php echo ucfirst(htmlspecialchars($notice['visibility'])); ?></p>
+                    </li>
+                <?php } ?>
             </ul>
         </div>
     </div>
@@ -131,7 +170,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 <script src="/full-stack-student-management-system/js/script.js"></script>
 <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script> 
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 <script>
     // Script to dynamically update the preview section
     const titleInput = document.getElementById('noticeTitle');
@@ -144,13 +183,10 @@
     const previewFile = document.getElementById('previewFile');
     const previewVisibility = document.getElementById('previewVisibility');
 
-    titleInput.addEventListener('input', () => previewTitle.textContent = titleInput.value || 'N/A');
-    descriptionInput.addEventListener('input', () => previewDescription.textContent = descriptionInput.value || 'N/A');
-    fileInput.addEventListener('change', () => {
-        const fileName = fileInput.files[0]?.name || 'No File Attached';
-        previewFile.textContent = fileName;
-    });
-    visibilitySelect.addEventListener('change', () => previewVisibility.textContent = visibilitySelect.value || 'N/A');
-</script> 
+    titleInput.addEventListener('input', () => previewTitle.textContent = titleInput.value);
+    descriptionInput.addEventListener('input', () => previewDescription.textContent = descriptionInput.value);
+    fileInput.addEventListener('change', () => previewFile.textContent = fileInput.files[0]?.name || 'No File Attached');
+    visibilitySelect.addEventListener('change', () => previewVisibility.textContent = visibilitySelect.value);
+</script>
 </body>
 </html>

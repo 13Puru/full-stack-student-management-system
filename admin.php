@@ -1,3 +1,63 @@
+<?php
+include 'dbconfig.php';
+
+// Fetch registration requests from the database
+$registrationRequests = [];
+$sql = "SELECT * FROM registration_requests WHERE status='Pending'";
+$result = mysqli_query($conn, $sql);
+while($row = mysqli_fetch_assoc($result)) {
+    $registrationRequests[] = $row;
+}
+
+// Handle approve or reject actions
+// Handle approve or reject actions
+if(isset($_GET['action']) && isset($_GET['id'])) {
+    $action = $_GET['action'];
+    $id = $_GET['id'];
+
+    if($action == 'approve') {
+        // First, get the student's details from registration_requests
+        $requestSql = "SELECT * FROM registration_requests WHERE id='$id' LIMIT 1";
+        $requestResult = mysqli_query($conn, $requestSql);
+        $request = mysqli_fetch_assoc($requestResult);
+
+        // Check if student already exists by username
+        $username = $request['username'];
+        $checkUsernameSql = "SELECT * FROM students WHERE username='$username'";
+        $checkResult = mysqli_query($conn, $checkUsernameSql);
+
+        if(mysqli_num_rows($checkResult) == 0) {
+            // Insert the student into the students table
+            $name = mysqli_real_escape_string($conn, $request['name']);
+            $fatherName = mysqli_real_escape_string($conn, $request['father_name']);
+            $mobileNumber = mysqli_real_escape_string($conn, $request['mobile_number']); // Make sure the field exists in the table
+            $admissionClass = mysqli_real_escape_string($conn, $request['admission_class']);
+            $username = mysqli_real_escape_string($conn, $request['username']);
+            $password = mysqli_real_escape_string($conn, $request['password']);
+            $image = $request['image']; // Handle image properly; either upload it or save its path
+
+            // Fix the SQL query with proper escaping and handling of image
+            $insertStudentSql = "INSERT INTO students (name, father_name, mobile_number, admission_class, username, password, image) 
+                                 VALUES ('$name', '$fatherName', '$mobileNumber', '$admissionClass', '$username', '$password', '$image')";
+            mysqli_query($conn, $insertStudentSql);
+        }
+
+        // Update the registration request status to 'Approved'
+        $updateSql = "UPDATE registration_requests SET status='Approved' WHERE id='$id'";
+        mysqli_query($conn, $updateSql);
+    } else if($action == 'reject') {
+        // Update the registration request status to 'Rejected'
+        $updateSql = "UPDATE registration_requests SET status='Rejected' WHERE id='$id'";
+        mysqli_query($conn, $updateSql);
+    }
+
+    // Redirect back to admin page
+    header('Location: admin.php');
+    exit();
+}
+
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,13 +78,13 @@
           <div class="collapse navbar-collapse" id="navbarText">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
               <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="admin.html">Home</a>
+                <a class="nav-link active" aria-current="page" href="admin.php">Home</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="notice.html">Upload Notice</a>
+                <a class="nav-link" href="notice.php">Upload Notice</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="stdMgmt.html">Student Management</a>
+                <a class="nav-link" href="stdMgmt.php">Student Management</a>
               </li>
             </ul>
             <span class="navbar-text">
@@ -67,23 +127,42 @@
                         <tr>
                             <th>#</th>
                             <th>Name</th>
-                            <th>Class</th>
+                            <th>Seeking Admission for</th>
+                            <th>Fathers Name</th>
+                            <th>Email</th>
+                            <th>Photo</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
+                        <?php foreach ($registrationRequests as $request): ?>
                         <tr>
-                            <td>1</td>
-                            <td>John Doe</td>
-                            <td>Class 5</td>
-                            <td>Pending</td>
+                            <td><?= $request['id'] ?></td>
+                            <td><?= $request['name'] ?></td>
+                            <td><?= $request['admission_class'] ?></td>
+                            <td><?= $request['father_name'] ?></td>
+                            <td><?= $request['username'] ?></td>
                             <td>
-                                <button class="btn btn-success btn-sm">Approve</button>
-                                <button class="btn btn-danger btn-sm">Reject</button>
+    <?php 
+        // Check if image data exists
+        if (!empty($request['image'])) {
+            // Encode image data to base64
+            echo '<img src="data:image/jpeg;base64,' . base64_encode($request['image']) . '" alt="Student Photo" width="100" height="100">';
+        } else {
+            // Placeholder if no image is available
+            echo '<img src="path_to_placeholder_image.jpg" alt="No Photo Available" width="100" height="100">';
+        }
+    ?>
+</td>
+
+                            <td><?= $request['status'] ?></td>
+                            <td>
+                                <a href="admin.php?action=approve&id=<?= $request['id'] ?>" class="btn btn-success btn-sm">Approve</a>
+                                <a href="admin.php?action=reject&id=<?= $request['id'] ?>" class="btn btn-danger btn-sm">Reject</a>
                             </td>
                         </tr>
-                        <!-- Add more rows as needed -->
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
             </div>
@@ -93,7 +172,7 @@
                 <h3>Class Manager</h3>
                 <p>Manage and configure classes here.</p>
                 <!-- Add content for class manager -->
-                <form>
+                <form method="POST" action="class_manager.php">
                     <div class="mb-3">
                         <label for="selectClass" class="form-label">Select Class</label>
                         <select class="form-select" id="selectClass" name="select_class" required>
@@ -112,7 +191,7 @@
                     </div>
                     <div class="mb-3">
                         <label for="classCapacity" class="form-label">Class Capacity</label>
-                        <input type="number" class="form-control" id="classCapacity" placeholder="Enter class capacity">
+                        <input type="number" class="form-control" id="classCapacity" placeholder="Enter class capacity" name="class_capacity" required>
                     </div>
                     <button type="submit" class="btn btn-primary">Save Class</button>
                 </form>
@@ -120,14 +199,10 @@
         </div>
     </div>
 
-
-      <!-- Footer -->
+    <!-- Footer -->
     <footer class="bg-dark text-center py-3 mt-5">
         <p class="mb-0 text-light">&copy; 2024 FSMS. All Rights Reserved. Designed and developed by Purab Das</p>
     </footer>
- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
- <script src="/full-stack-student-management-system/js/script.js"></script>
- <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>  
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-GLhlTQ8iRABdV4xq6Xz5b93eRZ5b/hvxs61W2CbmBBdDof1W2ECoJlq+poS2aRrt"></script>
 </body>
 </html>
