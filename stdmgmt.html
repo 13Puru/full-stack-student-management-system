@@ -25,7 +25,7 @@
 <body>
     <nav class="navbar navbar-expand-lg bg">
         <div class="container-fluid">
-          <a class="navbar-brand" href="#"><ion-icon name="book-outline"></ion-icon>FSMS</a>
+          <a class="navbar-brand" href="#"><ion-icon name="book-outline"></ion-icon> FSMS</a>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
@@ -43,7 +43,7 @@
             </span>
           </div>
         </div>
-      </nav>
+    </nav>
 
     <div class="container">
         <!-- Header -->
@@ -81,6 +81,7 @@
                         <th>Roll No.</th>
                         <th>Age</th>
                         <th>Current Class</th>
+                        <th>Marksheet</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -95,12 +96,13 @@
     <footer class="bg-dark text-center py-3 mt-5">
         <p class="mb-0 text-light">&copy; 2024 FSMS. All Rights Reserved. Designed and developed by Purab Das</p>
     </footer>
- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
- <script src="/full-stack-student-management-system/js/script.js"></script>
- <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/full-stack-student-management-system/js/script.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <script>
-        // Sample data for demonstration
         const studentsData = {
             1: [
                 { id: 1, name: 'Alice', roll: 101, age: 6, class: 1 },
@@ -110,7 +112,6 @@
                 { id: 3, name: 'Charlie', roll: 201, age: 7, class: 2 },
                 { id: 4, name: 'David', roll: 202, age: 7, class: 2 }
             ],
-            // Add data for other classes as needed
         };
 
         const classSelect = document.getElementById('classSelect');
@@ -123,47 +124,40 @@
         });
 
         function loadStudents(selectedClass) {
-            // Clear existing table rows
             studentTableBody.innerHTML = '';
-
-            // Update class heading
             classHeading.textContent = `Students of Class ${selectedClass}`;
-
-            // Get students of the selected class
             const students = studentsData[selectedClass] || [];
 
             if (students.length === 0) {
-                const emptyRow = `
+                studentTableBody.innerHTML = `
                     <tr>
-                        <td colspan="6" class="text-center text-muted">No students found for this class.</td>
-                    </tr>
-                `;
-                studentTableBody.innerHTML = emptyRow;
+                        <td colspan="7" class="text-center text-muted">No students found for this class.</td>
+                    </tr>`;
                 return;
             }
 
-            // Populate the table with student data
             students.forEach((student, index) => {
-                const row = `
+                studentTableBody.innerHTML += `
                     <tr>
                         <td>${index + 1}</td>
                         <td>${student.name}</td>
                         <td>${student.roll}</td>
                         <td>${student.age}</td>
                         <td>${student.class}</td>
+                        <td><button class="btn btn-info btn-sm">View</button></td>
                         <td>
                             <button class="btn btn-success btn-sm" onclick="promoteStudent(${student.id}, ${student.class})">Promote</button>
                         </td>
-                    </tr>
-                `;
-                studentTableBody.innerHTML += row;
+                    </tr>`;
             });
         }
 
         function promoteStudent(studentId, currentClass) {
             if (currentClass < 10) {
-                alert(`Student ID ${studentId} has been promoted to Class ${currentClass + 1}`);
-                // Logic to update class in backend can be added here
+                const confirmPromotion = confirm(`Promote Student ID ${studentId} to Class ${currentClass + 1}?`);
+                if (confirmPromotion) {
+                    alert(`Student ID ${studentId} has been promoted to Class ${currentClass + 1}`);
+                }
             } else {
                 alert(`Student ID ${studentId} is already in Class 10 and cannot be promoted further.`);
             }
