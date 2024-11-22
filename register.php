@@ -12,16 +12,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'];
 
     // Handle image upload
-    $image = $_FILES['image']['tmp_name'];
-    $imageContent = addslashes(file_get_contents($image));  // Get image data in binary format
+    if (isset($_FILES['image']) && $_FILES['image']['error'] == UPLOAD_ERR_OK) {
+        // Validate file type
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        if (!in_array($_FILES['image']['type'], $allowedTypes)) {
+            die("Invalid file type. Only JPEG, PNG, and GIF are allowed.");
+        }
+
+        // Validate file size (max 5MB)
+        if ($_FILES['image']['size'] > 5 * 1024 * 1024) {
+            die("File size exceeds the maximum limit of 5MB.");
+        }
+
+        // Read image data
+        $image = $_FILES['image']['tmp_name'];
+        $imageContent = file_get_contents($image);
+
+        // Ensure the image content is non-zero
+        if ($imageContent === false || strlen($imageContent) === 0) {
+            die("Error reading the uploaded image file.");
+        }
+
+        // Add slashes for database insertion
+        $imageContent = addslashes($imageContent);
+    } else {
+        die("Error: No image uploaded or an error occurred during upload.");
+    }
 
     // Hash the password
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
     // Check if the username already exists
     $query = "SELECT * FROM registration_requests WHERE username = ? UNION SELECT * FROM students WHERE username = ?";
-    
-    // Prepare statement for the check query
+
     if ($stmt = $conn->prepare($query)) {
         // Bind parameters and execute
         $stmt->bind_param("ss", $username, $username);
@@ -29,16 +52,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->store_result();
 
         if ($stmt->num_rows > 0) {
-            // Username already exists
             echo "<script>alert('Error: Username already exists!');</script>";
         } else {
             // Insert registration request if username doesn't exist
             $insertQuery = "INSERT INTO registration_requests (name, father_name, mobile_number, admission_class, username, password, image) 
                             VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-            // Prepare statement for insert query
             if ($insertStmt = $conn->prepare($insertQuery)) {
-                // Bind parameters for the insert query
                 $insertStmt->bind_param("sssssss", $name, $father_name, $mobile_number, $admission_class, $username, $hashedPassword, $imageContent);
 
                 if ($insertStmt->execute()) {
@@ -47,23 +67,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     echo "<script>alert('Error: " . $insertStmt->error . "');</script>";
                 }
 
-                // Close the insert statement after execution
                 $insertStmt->close();
             } else {
                 echo "<script>alert('Error: " . $conn->error . "');</script>";
             }
         }
 
-        // Close the select statement after execution
         $stmt->close();
     } else {
         echo "<script>alert('Error: " . $conn->error . "');</script>";
     }
 
-    // Close the database connection
     $conn->close();
 }
 ?>
+
 
 
 <!DOCTYPE html>
