@@ -1,21 +1,18 @@
 <?php
-// Include the database connection file
 include 'dbconfig.php';
-
-// Assuming the user is logged in and you have the student's ID stored in session
+include('checklogin.php');
 session_start();
 
-// Example: Fetch student data based on the logged-in student ID (assuming student_id is in session)
-$student_id = $_SESSION['student_id']; // Ensure that the session variable 'student_id' is set after login
+// Fetch student ID from session
+$student_id = $_SESSION['student_id']; // Ensure this is set after login
 
-// Prepare and execute the query to fetch the student data
+// Fetch student data
 $query = "SELECT * FROM students WHERE student_id = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $student_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
-// Fetch student data
 if ($result->num_rows > 0) {
     $student = $result->fetch_assoc();
     $student_name = $student['name'];
@@ -24,17 +21,18 @@ if ($result->num_rows > 0) {
     $student_email = $student['username'];
     $student_class = $student['admission_class'];
     $student_roll_number = $student['student_id'];
-    // $student_age = $student['age'];
     $student_status = $student['status'];
-    $student_image = $student['image'];
+    $student_image = $student['image']; // Image stored as a BLOB
 } else {
     echo "No student found.";
+    exit;
 }
+
 // Fetch notices
 $notices_query = "SELECT * FROM notices ORDER BY created_at DESC";
 $notices_result = $conn->query($notices_query);
 
-// Close the prepared statement
+// Close statement and connection
 $stmt->close();
 $conn->close();
 ?>
@@ -45,8 +43,7 @@ $conn->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/full-stack-student-management-system/css/style.css">
     <style>
         body {
@@ -85,11 +82,6 @@ $conn->close();
             text-align: center;
         }
 
-        .edit-btn {
-            float: right;
-            margin-top: -50px;
-        }
-
         .notice-item {
             margin-bottom: 15px;
         }
@@ -106,9 +98,7 @@ $conn->close();
             </button>
             <div class="collapse navbar-collapse" id="navbarText">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="index.php">Home</a>
-                    </li>
+                
                 </ul>
                 <span class="navbar-text">
                     Student-Management-System
@@ -128,12 +118,11 @@ $conn->close();
                     </div>
                     <!-- Body -->
                     <div class="text-center">
-                        <!-- If student has an image, display it. Otherwise, show a placeholder image -->
-                        <img src="<?php echo $student_image ? 'uploads/' . $student_image : 'student-placeholder.jpg'; ?>"
+                        <!-- Display the student's image -->
+                        <img src="data:image/jpeg;base64,<?php echo base64_encode($student_image); ?>" 
                             alt="Student Image" class="profile-img mb-3">
                         <h3><?php echo $student_name; ?></h3>
                         <p class="text-muted">Class: <?php echo $student_class; ?></p>
-                        <button class="btn btn-primary btn-sm edit-btn">Edit Profile</button>
                     </div>
 
                     <hr>
@@ -158,10 +147,9 @@ $conn->close();
                     <div class="row">
                         <div class="col-md-6">
                             <p><strong>Current Class:</strong> <?php echo $student_class; ?></p>
-                            <p><strong>Roll Number:</strong> <?php echo $student_roll_number; ?></p>
+                            <p><strong>Student ID:</strong> <?php echo $student_roll_number; ?></p>
                         </div>
                         <div class="col-md-6">
-                           
                             <p><strong>Status:</strong> <?php echo $student_status; ?></p>
                         </div>
                     </div>
@@ -171,20 +159,18 @@ $conn->close();
                     <!-- Actions -->
                     <div class="d-flex justify-content-between">
                         <button class="btn btn-success btn-sm">Download Report</button>
+                        <a href="logout.php" class="btn btn-danger">Logout</a>
                         <button class="btn btn-secondary btn-sm">View Academic History</button>
                     </div>
                 </div>
             </div>
 
             <!-- Notice Section -->
-            <!-- Notice Section -->
             <div class="col-lg-4">
                 <div class="notice-card">
-                    <!-- Header -->
                     <div class="notice-header">
                         <h4>Notices</h4>
                     </div>
-                    <!-- Body -->
                     <div class="mt-3">
                         <?php if ($notices_result->num_rows > 0): ?>
                             <?php while ($notice = $notices_result->fetch_assoc()): ?>
@@ -203,18 +189,15 @@ $conn->close();
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="bg-dark text-center py-3 mt-5">
         <p class="mb-0 text-light">&copy; 2024 FSMS. All Rights Reserved. Designed and developed by Purab Das</p>
     </footer>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
-    <script src="/full-stack-student-management-system/js/script.js"></script>
-    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>   
+
 </body>
+
 </html>

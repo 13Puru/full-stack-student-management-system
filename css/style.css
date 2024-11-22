@@ -1,3 +1,9 @@
+body {       
+    background-color: var(--soft-background);
+    font-family: 'Inter', 'Source Sans Pro', sans-serif;
+    line-height: 1.6;
+    
+}
 nav.navbar.navbar-expand-lg.bg {
     background-color: #86c2ff; /* Custom background color */
     border-bottom: 2px solid #6c757d; /* Optional: Border at the bottom */
@@ -17,10 +23,7 @@ ion-icon{
     vertical-align: middle;
     margin-right: 10px;
 }
-body {
-    background: #f8f9fa;
-    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-}
+
 .login-section {
     height: 100vh;
     display: flex;
@@ -58,3 +61,10 @@ body {
     padding: 20px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
 }
+.fixed-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+}
+

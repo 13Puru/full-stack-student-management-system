@@ -1,5 +1,17 @@
 <?php
 include 'dbconfig.php';
+include('checklogin.php');
+
+// Fetch students data from the database based on the selected class
+$class_id = isset($_GET['class_id']) ? $_GET['class_id'] : 1; // Default to Class 1 if no class is selected
+$query = "SELECT student_id, name, father_name, mobile_number, image, admission_class FROM students WHERE admission_class = $class_id";
+$result = mysqli_query($conn, $query);
+
+// Handle database errors
+if (!$result) {
+    die("Error fetching student data: " . mysqli_error($conn));
+}
+$students = mysqli_fetch_all($result, MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -22,6 +34,12 @@ include 'dbconfig.php';
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .student-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 50%;
         }
     </style>
 </head>
@@ -58,111 +76,107 @@ include 'dbconfig.php';
         <!-- Class Selection -->
         <div class="mb-4">
             <label for="classSelect" class="form-label">Select Class to Manage</label>
-            <select class="form-select" id="classSelect">
-                <option value="" selected disabled>Select Class</option>
-                <option value="1">Class 1</option>
-                <option value="2">Class 2</option>
-                <option value="3">Class 3</option>
-                <option value="4">Class 4</option>
-                <option value="5">Class 5</option>
-                <option value="6">Class 6</option>
-                <option value="7">Class 7</option>
-                <option value="8">Class 8</option>
-                <option value="9">Class 9</option>
-                <option value="10">Class 10</option>
+            <select class="form-select" id="classSelect" onchange="loadStudents()">
+                <option value="1" <?= $class_id == 1 ? 'selected' : '' ?>>Class 1</option>
+                <option value="2" <?= $class_id == 2 ? 'selected' : '' ?>>Class 2</option>
+                <option value="3" <?= $class_id == 3 ? 'selected' : '' ?>>Class 3</option>
+                <option value="4" <?= $class_id == 4 ? 'selected' : '' ?>>Class 4</option>
+                <option value="5" <?= $class_id == 5 ? 'selected' : '' ?>>Class 5</option>
+                <option value="6" <?= $class_id == 6 ? 'selected' : '' ?>>Class 6</option>
+                <option value="7" <?= $class_id == 7 ? 'selected' : '' ?>>Class 7</option>
+                <option value="8" <?= $class_id == 8 ? 'selected' : '' ?>>Class 8</option>
+                <option value="9" <?= $class_id == 9 ? 'selected' : '' ?>>Class 9</option>
+                <option value="10" <?= $class_id == 10 ? 'selected' : '' ?>>Class 10</option>
             </select>
         </div>
 
         <!-- Table Container -->
         <div class="table-container">
-            <h3 id="classHeading" class="mb-3">Students of Class</h3>
+            <h3 id="classHeading" class="mb-3">Students of Class <?php echo $class_id; ?></h3>
             <table class="table table-bordered table-striped">
                 <thead class="table-primary">
                     <tr>
                         <th>#</th>
                         <th>Name</th>
-                        <th>Roll No.</th>
-                        <th>Age</th>
-                        <th>Current Class</th>
+                        <th>Father's Name</th>
+                        <th>Mobile No.</th>
+                        <th>Admission Class</th>
+                        <th>Image</th>
                         <th>Marksheet</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="studentTableBody">
-                    <!-- Rows will be dynamically added here -->
+                    <?php
+                    if (count($students) > 0) {
+                        $index = 1;
+                        foreach ($students as $student) {
+                            echo "
+                            <tr>
+                                <td>{$index}</td>
+                                <td>{$student['name']}</td>
+                                <td>{$student['father_name']}</td>
+                                <td>{$student['mobile_number']}</td>
+                                <td>{$student['admission_class']}</td>
+                                <td><img src='data:image/jpeg;base64," . base64_encode($student['image']) . "' class='student-image' alt='Student Image'></td>
+                                <td><button class='btn btn-info btn-sm' onclick='uploadMarksheet({$student['student_id']})'>Upload Marksheet</button></td>
+                                <td>
+                                    <button class='btn btn-success btn-sm' onclick='promoteStudent({$student['student_id']}, {$student['admission_class']})'>Promote</button>
+                                </td>
+                            </tr>";
+                            $index++;
+                        }
+                    } else {
+                        echo "
+                        <tr>
+                            <td colspan='8' class='text-center text-muted'>No students found for this class.</td>
+                        </tr>";
+                    }
+                    ?>
                 </tbody>
             </table>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer class="bg-dark text-center py-3 mt-5">
+    <footer class="bg-dark text-center py-3 mt-5 fixed-bottom">
         <p class="mb-0 text-light">&copy; 2024 FSMS. All Rights Reserved. Designed and developed by Purab Das</p>
     </footer>
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/full-stack-student-management-system/js/script.js"></script>
-    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <script>
-        const studentsData = {
-            1: [
-                { id: 1, name: 'Alice', roll: 101, age: 6, class: 1 },
-                { id: 2, name: 'Bob', roll: 102, age: 6, class: 1 }
-            ],
-            2: [
-                { id: 3, name: 'Charlie', roll: 201, age: 7, class: 2 },
-                { id: 4, name: 'David', roll: 202, age: 7, class: 2 }
-            ],
-        };
-
         const classSelect = document.getElementById('classSelect');
         const studentTableBody = document.getElementById('studentTableBody');
         const classHeading = document.getElementById('classHeading');
 
-        classSelect.addEventListener('change', () => {
+        function loadStudents() {
             const selectedClass = classSelect.value;
-            loadStudents(selectedClass);
-        });
-
-        function loadStudents(selectedClass) {
-            studentTableBody.innerHTML = '';
-            classHeading.textContent = `Students of Class ${selectedClass}`;
-            const students = studentsData[selectedClass] || [];
-
-            if (students.length === 0) {
-                studentTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="7" class="text-center text-muted">No students found for this class.</td>
-                    </tr>`;
-                return;
-            }
-
-            students.forEach((student, index) => {
-                studentTableBody.innerHTML += `
-                    <tr>
-                        <td>${index + 1}</td>
-                        <td>${student.name}</td>
-                        <td>${student.roll}</td>
-                        <td>${student.age}</td>
-                        <td>${student.class}</td>
-                        <td><button class="btn btn-info btn-sm">View</button></td>
-                        <td>
-                            <button class="btn btn-success btn-sm" onclick="promoteStudent(${student.id}, ${student.class})">Promote</button>
-                        </td>
-                    </tr>`;
-            });
+            // Reload the page with the selected class id
+            window.location.href = `stdmgmt.php?class_id=${selectedClass}`;
         }
 
         function promoteStudent(studentId, currentClass) {
             if (currentClass < 10) {
                 const confirmPromotion = confirm(`Promote Student ID ${studentId} to Class ${currentClass + 1}?`);
                 if (confirmPromotion) {
-                    alert(`Student ID ${studentId} has been promoted to Class ${currentClass + 1}`);
+                    // Perform the promotion by updating the admission class in the database
+                    const url = `promote_student.php?student_id=${studentId}&current_class=${currentClass}`;
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            alert(data.message);
+                            if (data.success) {
+                                loadStudents(); // Reload the students list
+                            }
+                        })
+                        .catch(error => {
+                            alert('An error occurred during promotion.');
+                        });
                 }
             } else {
-                alert(`Student ID ${studentId} is already in Class 10 and cannot be promoted further.`);
+                alert('This student cannot be promoted as they are already in the highest class.');
             }
         }
     </script>

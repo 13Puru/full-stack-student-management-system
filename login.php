@@ -1,81 +1,68 @@
 <?php
 include 'dbconfig.php'; // Include your database configuration file
-
 // Start the session to store login information
 session_start();
 
 // Initialize variables for error messages
 $error_msg = '';
 
-// Check if the student form is submitted
-if (isset($_POST['username']) && isset($_POST['password'])) {
-    // Retrieve the email and password from the form
+// Check if the form is submitted
+if (isset($_POST['form_type'])) {
+    $form_type = $_POST['form_type'];
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Prepare SQL query to find the student by email
-    $query = "SELECT * FROM students WHERE username = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    if ($form_type === 'student') {
+        // Student Login
+        $query = "SELECT * FROM students WHERE username = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-    // Check if the student exists
-    if ($result->num_rows > 0) {
-        $student = $result->fetch_assoc();
-        
-        // Verify the password
-        if (password_verify($password, $student['password'])) {
-            // Set session variables for student login
-            $_SESSION['student_id'] = $student['student_id'];
-            $_SESSION['student_name'] = $student['name'];
-            $_SESSION['student_email'] = $student['username'];
-            
-            // Redirect to the student dashboard or home page
-            header('Location: userpro.php');
-            exit();
+        if ($result->num_rows > 0) {
+            $student = $result->fetch_assoc();
+            if (password_verify($password, $student['password'])) {
+                // Set session variables for student login
+                $_SESSION['student_id'] = $student['student_id'];
+                $_SESSION['student_name'] = $student['name'];
+                $_SESSION['student_email'] = $student['username'];
+
+                // Redirect to the student dashboard
+                header('Location: userpro.php');
+                exit();
+            } else {
+                $error_msg = 'Invalid password.';
+            }
         } else {
-            $error_msg = 'Invalid password.';
+            $error_msg = 'No student found with this username.';
         }
-    } else {
-        $error_msg = 'No student found with this username.';
+    } elseif ($form_type === 'admin') {
+        // Admin Login
+        $query = "SELECT * FROM admins WHERE username = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($result->num_rows > 0) {
+            $admin = $result->fetch_assoc();
+            if (password_verify($password, $admin['password'])) {
+                // Set session variables for admin login
+                $_SESSION['admin_id'] = $admin['admin_id'];
+                $_SESSION['admin_username'] = $admin['username'];
+
+                // Redirect to the admin dashboard
+                header('Location: admin.php');
+                exit();
+            } else {
+                $error_msg = 'Invalid password for admin.';
+            }
+        } else {
+            $error_msg = 'No admin found with this username.';
+        }
     }
 }
-
-// Check if the admin form is submitted
-if (isset($_POST['username']) && isset($_POST['password'])) {
-    // Retrieve the username and password from the form
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-
-    // Prepare SQL query to find the admin by username
-    $query = "SELECT * FROM admins WHERE username = ?";
-    $stmt = $conn->prepare($query);
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
-
-    // Check if the admin exists
-    if ($result->num_rows > 0) {
-        $admin = $result->fetch_assoc();
-        
-        // Verify the password
-        if (password_verify($password, $admin['password'])) {
-            // Set session variables for admin login
-            $_SESSION['admin_id'] = $admin['admin_id'];
-            $_SESSION['admin_username'] = $admin['username'];
-            
-            // Redirect to the admin dashboard
-            header('Location: admin.php');
-            exit();
-        } else {
-            $error_msg = 'Invalid password for admin.';
-        }
-    } else {
-        $error_msg = 'No admin found with this username.';
-    }
-}
-
 ?>
 
 <!DOCTYPE html>
@@ -84,8 +71,93 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
     <link rel="stylesheet" href="/full-stack-student-management-system/css/style.css">
+    <style>
+        /* Custom Login Page Styles */
+        :root {
+    --primary-dark: #1a2b3c;
+    --secondary-dark: #2c3e50;
+    --accent-blue: #3498db;
+    --soft-background: #f8f9fa;
+    --text-dark: #2c3e50;
+    --white: #ffffff;
+}
+
+.login-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 200px);
+    transition: background 0.3s ease;
+}
+
+.form-container {
+    background: var(--white);
+    border-radius: 12px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.form-container:hover {
+    transform: translateY(-5px);
+}
+
+.form-title {
+    text-align: center;
+    color: var(--text-dark);
+    margin-bottom: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.form-control {
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 6px;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+.btn {
+    transition: all 0.3s ease;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0.625rem 1.25rem;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+footer {
+    background: linear-gradient(90deg, var(--primary-dark), var(--secondary-dark));
+    color: var(--white);
+    padding: 1.25rem;
+    box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 768px) {
+    .login-section {
+        min-height: auto;
+        padding: 1rem 0;
+    }
+
+    .form-container {
+        max-width: 95%;
+        margin: 1rem;
+    }
+}
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg bg">
@@ -118,9 +190,10 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
                 <div class="form-container">
                     <h2 class="form-title">Student Login</h2>
                     <form action="login.php" method="POST">
+                        <input type="hidden" name="form_type" value="student">
                         <div class="mb-3">
-                            <label for="studentUsername" class="form-label">username</label>
-                            <input type="email" class="form-control" id="studentUsername" name="username" placeholder="Enter your username" required>
+                            <label for="studentUsername" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="studentUsername" name="username" placeholder="Enter your username" required>
                         </div>
                         <div class="mb-3">
                             <label for="studentPassword" class="form-label">Password</label>
@@ -128,7 +201,6 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
                         </div>
                         <button type="submit" class="btn btn-light text-primary">Login</button>
                     </form>
-                    <?php if (!empty($error_msg)) { echo "<p class='text-danger'>$error_msg</p>"; } ?>
                 </div>
             </div>
 
@@ -137,6 +209,7 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
                 <div class="form-container">
                     <h2 class="form-title">Admin Login</h2>
                     <form action="login.php" method="POST">
+                        <input type="hidden" name="form_type" value="admin">
                         <div class="mb-3">
                             <label for="adminUsername" class="form-label">Username</label>
                             <input type="text" class="form-control" id="adminUsername" name="username" placeholder="Enter your username" required>
@@ -147,20 +220,16 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
                         </div>
                         <button type="submit" class="btn btn-light text-secondary">Login</button>
                     </form>
-                    <?php if (!empty($error_msg)) { echo "<p class='text-danger'>$error_msg</p>"; } ?>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Footer -->
-    <footer class="bg-dark text-center py-3 mt-5">
+    <footer class="bg-dark text-center py-3 mt-10 fixed-bottom">
         <p class="mb-0 text-light">&copy; 2024 FSMS. All Rights Reserved. Designed and developed by Purab Das</p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="/full-stack-student-management-system/js/script.js"></script>
-    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 </body>
 </html>
