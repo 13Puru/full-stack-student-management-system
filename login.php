@@ -72,92 +72,8 @@ if (isset($_POST['form_type'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
-    <link rel="stylesheet" href="/full-stack-student-management-system/css/style.css">
-    <style>
-        /* Custom Login Page Styles */
-        :root {
-    --primary-dark: #1a2b3c;
-    --secondary-dark: #2c3e50;
-    --accent-blue: #3498db;
-    --soft-background: #f8f9fa;
-    --text-dark: #2c3e50;
-    --white: #ffffff;
-}
-
-.login-section {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: calc(100vh - 200px);
-    transition: background 0.3s ease;
-}
-
-.form-container {
-    background: var(--white);
-    border-radius: 12px;
-    padding: 2.5rem;
-    width: 100%;
-    max-width: 420px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-}
-
-.form-container:hover {
-    transform: translateY(-5px);
-}
-
-.form-title {
-    text-align: center;
-    color: var(--text-dark);
-    margin-bottom: 1.75rem;
-    font-weight: 700;
-    letter-spacing: -0.5px;
-}
-
-.form-control {
-    border: 2px solid rgba(0, 0, 0, 0.1);
-    border-radius: 6px;
-    padding: 0.75rem;
-    transition: all 0.3s ease;
-}
-
-.form-control:focus {
-    border-color: var(--accent-blue);
-    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
-}
-
-.btn {
-    transition: all 0.3s ease;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 0.625rem 1.25rem;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-footer {
-    background: linear-gradient(90deg, var(--primary-dark), var(--secondary-dark));
-    color: var(--white);
-    padding: 1.25rem;
-    box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.05);
-}
-
-@media (max-width: 768px) {
-    .login-section {
-        min-height: auto;
-        padding: 1rem 0;
-    }
-
-    .form-container {
-        max-width: 95%;
-        margin: 1rem;
-    }
-}
-    </style>
+    <link rel="stylesheet" href="/full-stack-student-management-system/css/login.css">
+    
 </head>
 <body>
     <nav class="navbar navbar-expand-lg bg">
@@ -231,5 +147,7 @@ footer {
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>   
 </body>
 </html>

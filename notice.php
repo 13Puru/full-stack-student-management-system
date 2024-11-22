@@ -45,30 +45,8 @@ $result = $conn->query($sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notice</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="/full-stack-student-management-system/css/style.css">
-    <style>
-        .form-container {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            margin: 50px auto;
-            max-width: 800px;
-        }
-        .notice-preview {
-            background: #fff;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-        .notice-list {
-            margin-top: 30px;
-        }
-        .notice-list h4 {
-            margin-bottom: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="/full-stack-student-management-system/css/notice.css">
+   
 </head>
 <body>
     <!-- navbar -->

@@ -13,6 +13,7 @@ if (!$result) {
 }
 $students = mysqli_fetch_all($result, MYSQLI_ASSOC);
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -21,27 +22,7 @@ $students = mysqli_fetch_all($result, MYSQLI_ASSOC);
     <title>Student Management</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/full-stack-student-management-system/css/style.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .container {
-            margin-top: 30px;
-        }
-        .table-container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-        }
-        .student-image {
-            width: 50px;
-            height: 50px;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-    </style>
+    <link rel="stylesheet" href="/full-stack-student-management-system/css/stdmgmt.css">
 </head>
 <body>
     <nav class="navbar navbar-expand-lg bg">
@@ -56,7 +37,7 @@ $students = mysqli_fetch_all($result, MYSQLI_ASSOC);
                 <a class="nav-link active" aria-current="page" href="admin.php">Home</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="notice.html">Upload Notice</a>
+                <a class="nav-link" href="notice.php">Upload Notice</a>
               </li>
             </ul>
             <span class="navbar-text">
@@ -138,6 +119,28 @@ $students = mysqli_fetch_all($result, MYSQLI_ASSOC);
         </div>
     </div>
 
+    <!-- Upload Marksheet Modal -->
+    <div class="modal fade" id="uploadMarksheetModal" tabindex="-1" aria-labelledby="uploadMarksheetModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="uploadMarksheetModalLabel">Upload Marksheet</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="marksheetForm" action="upload_marksheet.php" method="POST" enctype="multipart/form-data">
+                        <input type="hidden" id="studentId" name="student_id">
+                        <div class="mb-3">
+                            <label for="marksheet" class="form-label">Choose Marksheet File</label>
+                            <input type="file" class="form-control" id="marksheet" name="marksheet" accept=".pdf" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload Marksheet</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-dark text-center py-3 mt-5 fixed-bottom">
         <p class="mb-0 text-light">&copy; 2024 FSMS. All Rights Reserved. Designed and developed by Purab Das</p>
@@ -145,7 +148,6 @@ $students = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/full-stack-student-management-system/js/script.js"></script>
     <script>
         const classSelect = document.getElementById('classSelect');
         const studentTableBody = document.getElementById('studentTableBody');
@@ -176,8 +178,15 @@ $students = mysqli_fetch_all($result, MYSQLI_ASSOC);
                         });
                 }
             } else {
-                alert('This student cannot be promoted as they are already in the highest class.');
+                alert('Student is already in the highest class.');
             }
+        }
+
+        function uploadMarksheet(studentId) {
+            const studentIdInput = document.getElementById('studentId');
+            studentIdInput.value = studentId;
+            const uploadModal = new bootstrap.Modal(document.getElementById('uploadMarksheetModal'));
+            uploadModal.show();
         }
     </script>
 </body>

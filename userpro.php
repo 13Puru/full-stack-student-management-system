@@ -32,10 +32,31 @@ if ($result->num_rows > 0) {
 $notices_query = "SELECT * FROM notices ORDER BY created_at DESC";
 $notices_result = $conn->query($notices_query);
 
+// Fetch the latest marksheet for the logged-in student
+$marksheet_query = "SELECT marksheet_data FROM marksheet WHERE student_id = ? ORDER BY upload_date DESC LIMIT 1";
+$stmt = $conn->prepare($marksheet_query);
+$stmt->bind_param("i", $student_id);
+$stmt->execute();
+$stmt->bind_result($marksheet_data);
+$stmt->fetch();
+$stmt->close();
+
+if ($marksheet_data) {
+    header('Content-Type: application/pdf');
+    header('Content-Disposition: attachment; filename="marksheet.pdf"');
+    echo $marksheet_data;
+    exit;
+} else {
+    echo "<script>alert('No marksheet found for this student.');</script>";
+}
+
+
 // Close statement and connection
 $stmt->close();
+$marksheet_stmt->close();
 $conn->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -44,48 +65,7 @@ $conn->close();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/full-stack-student-management-system/css/style.css">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-
-        .profile-card,
-        .notice-card {
-            background: #fff;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .profile-img {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid #007bff;
-        }
-
-        .profile-header {
-            background-color: #007bff;
-            color: white;
-            padding: 10px;
-            border-radius: 10px 10px 0 0;
-            text-align: center;
-        }
-
-        .notice-header {
-            background-color: #17a2b8;
-            color: white;
-            padding: 10px;
-            border-radius: 10px 10px 0 0;
-            text-align: center;
-        }
-
-        .notice-item {
-            margin-bottom: 15px;
-        }
-    </style>
+    <link rel="stylesheet" href="/full-stack-student-management-system/css/userpro.css">
 </head>
 
 <body>
@@ -158,9 +138,13 @@ $conn->close();
 
                     <!-- Actions -->
                     <div class="d-flex justify-content-between">
-                        <button class="btn btn-success btn-sm">Download Report</button>
+                        <?php if ($marksheet_data): ?>
+                            <a href="download_marksheet.php?student_id=<?php echo $student_id; ?>" class="btn btn-success btn-sm">Download Report</a>
+                        <?php else: ?>
+                            <button class="btn btn-secondary btn-sm" disabled>No Marksheets Available</button>
+                        <?php endif; ?>
                         <a href="logout.php" class="btn btn-danger">Logout</a>
-                        <button class="btn btn-secondary btn-sm">View Academic History</button>
+                        <button class="btn btn-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#academicHistory">View Academic History</button>
                     </div>
                 </div>
             </div>
@@ -190,6 +174,35 @@ $conn->close();
                 </div>
             </div>
         </div>
+
+        <!-- Academic History Section -->
+        <div class="row collapse" id="academicHistory">
+            <div class="col-12">
+                <h5>Academic History</h5>
+                <?php
+                // Fetch all marksheets for the logged-in student
+                $history_query = "SELECT marksheet_id, marksheet_name, upload_date FROM marksheet WHERE student_id = ? ORDER BY upload_date DESC";
+                $history_stmt = $conn->prepare($history_query);
+                $history_stmt->bind_param("i", $student_id);
+                $history_stmt->execute();
+                $history_result = $history_stmt->get_result();
+
+                if ($history_result->num_rows > 0):
+                    while ($history = $history_result->fetch_assoc()):
+                ?>
+                        <div class="marksheet-item">
+                            <p><strong><?php echo $history['marksheet_name']; ?></strong> - <?php echo date("d-M-Y", strtotime($history['upload_date'])); ?></p>
+                            <a href="download_marksheet.php?marksheet_id=<?php echo $history['marksheet_id']; ?>" class="btn btn-sm btn-info">Download</a>
+                        </div>
+                        <hr>
+                <?php
+                    endwhile;
+                else:
+                ?>
+                    <p>No academic history available.</p>
+                <?php endif; ?>
+            </div>
+        </div>
     </div>
 
     <footer class="bg-dark text-center py-3 mt-5">
@@ -197,7 +210,6 @@ $conn->close();
     </footer>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>   
-
 </body>
 
 </html>

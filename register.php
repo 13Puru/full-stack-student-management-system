@@ -73,29 +73,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/full-stack-student-management-system/css/style.css">
-    <style>
-        .form-container {
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            max-width: 600px;
-            margin: 50px auto;
-        }
-        .form-title {
-            text-align: center;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-        .image-preview {
-            width: 150px;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-    </style>
+    <link rel="stylesheet" href="/full-stack-student-management-system/css/register.css">
+    
 </head>
 <body>
     <nav class="navbar navbar-expand-lg bg">

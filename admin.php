@@ -66,7 +66,8 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/full-stack-student-management-system/css/style.css">
+    <link rel="stylesheet" href="/full-stack-student-management-system/css/admin.css">
+    
 </head>
 <body>
     <!-- navbar -->
