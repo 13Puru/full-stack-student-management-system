@@ -1,6 +1,5 @@
 <?php
 include 'dbconfig.php';
-include('checklogin.php');
 
 // Fetch registration requests from the database
 $registrationRequests = [];
@@ -89,7 +88,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
                         <a class="nav-link" href="stdMgmt.php">Student Management</a>
                     </li>
                     <li class="nav-item">
-                        <a href="logout.php" class="btn btn-danger">Logout</a>
+                    <button class="btn btn-danger" onclick="logout()">Logout</button>
                     </li>
                 </ul>
                 <span class="navbar-text">Student-Management-System</span>
@@ -155,7 +154,7 @@ if (isset($_GET['action']) && isset($_GET['id'])) {
     <footer class="bg-dark text-center py-3 mt-5 fixed-bottom">
         <p class="mb-0 text-light">&copy; 2024 FSMS. All Rights Reserved. Designed and developed by Purab Das</p>
     </footer>
-
+    <script src="/full-stack-student-management-system/js/script.js"></script>                            
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </body>

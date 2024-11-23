@@ -19,7 +19,7 @@ if (isset($_POST['form_type'])) {
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
-
+    
         if ($result->num_rows > 0) {
             $student = $result->fetch_assoc();
             if (password_verify($password, $student['password'])) {
@@ -27,9 +27,13 @@ if (isset($_POST['form_type'])) {
                 $_SESSION['student_id'] = $student['student_id'];
                 $_SESSION['student_name'] = $student['name'];
                 $_SESSION['student_email'] = $student['username'];
-
-                // Redirect to the student dashboard
-                header('Location: userpro.php');
+    
+                // Add client-side login flag
+                echo "<script>
+                    sessionStorage.setItem('isLoggedIn', true);
+                    sessionStorage.setItem('userType', 'student');
+                    window.location.href = 'userpro.php';
+                </script>";
                 exit();
             } else {
                 $error_msg = 'Invalid password.';
@@ -44,16 +48,20 @@ if (isset($_POST['form_type'])) {
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
-
+    
         if ($result->num_rows > 0) {
             $admin = $result->fetch_assoc();
             if (password_verify($password, $admin['password'])) {
                 // Set session variables for admin login
                 $_SESSION['admin_id'] = $admin['admin_id'];
                 $_SESSION['admin_username'] = $admin['username'];
-
-                // Redirect to the admin dashboard
-                header('Location: admin.php');
+    
+                // Add client-side login flag
+                echo "<script>
+                    sessionStorage.setItem('isLoggedIn', true);
+                    sessionStorage.setItem('userType', 'admin');
+                    window.location.href = 'admin.php';
+                </script>";
                 exit();
             } else {
                 $error_msg = 'Invalid password for admin.';
@@ -62,6 +70,7 @@ if (isset($_POST['form_type'])) {
             $error_msg = 'No admin found with this username.';
         }
     }
+    
 }
 ?>
 

@@ -1,7 +1,6 @@
 <?php
 include 'dbconfig.php';
-include('checklogin.php');
-
+session_start();
 // Fetch students data from the database based on the selected class
 $class_id = isset($_GET['class_id']) ? $_GET['class_id'] : 1; // Default to Class 1 if no class is selected
 $query = "SELECT student_id, name, father_name, mobile_number, image, admission_class FROM students WHERE admission_class = $class_id";
@@ -145,7 +144,7 @@ $students = mysqli_fetch_all($result, MYSQLI_ASSOC);
     <footer class="bg-dark text-center py-3 mt-5 fixed-bottom">
         <p class="mb-0 text-light">&copy; 2024 FSMS. All Rights Reserved. Designed and developed by Purab Das</p>
     </footer>
-
+    <script src="/full-stack-student-management-system/js/script.js"></script>                            
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>

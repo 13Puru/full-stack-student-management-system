@@ -1,6 +1,6 @@
 <?php
 include 'dbconfig.php'; // Include database connection file
-include('checklogin.php');
+session_start();
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['notice_title'];
