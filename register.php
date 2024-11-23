@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             die("File size exceeds the maximum limit of 5MB.");
         }
 
-        // Read image data
+        // Read and encode image data
         $image = $_FILES['image']['tmp_name'];
         $imageContent = file_get_contents($image);
 
@@ -32,9 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($imageContent === false || strlen($imageContent) === 0) {
             die("Error reading the uploaded image file.");
         }
-
-        // Add slashes for database insertion
-        $imageContent = addslashes($imageContent);
     } else {
         die("Error: No image uploaded or an error occurred during upload.");
     }
@@ -81,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $conn->close();
 }
 ?>
+
 
 
 

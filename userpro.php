@@ -37,21 +37,12 @@ if ($result->num_rows > 0) {
 $notices_query = "SELECT * FROM notices ORDER BY created_at DESC";
 $notices_result = $conn->query($notices_query);
 
-// Debugging the image data and MIME type
-echo "<pre>";
-echo "Student Image (Raw Data):\n";
-var_dump($student_image); // Output the raw image data
-echo "</pre>";
 
 if (!empty($student_image)) {
     // Debugging image MIME type detection
     $image_info = finfo_open(FILEINFO_MIME_TYPE);
     $mime_type = finfo_buffer($image_info, $student_image);
     finfo_close($image_info);
-
-    echo "<pre>";
-    echo "Detected MIME Type: " . $mime_type . "\n";
-    echo "</pre>";
 } else {
     echo "No image data found.\n";
 }
